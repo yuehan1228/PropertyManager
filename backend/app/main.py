@@ -42,6 +42,8 @@ async def lifespan(app: FastAPI):
         _migrate_existing_data(db)
         # DDL 迁移：补充缺失列
         _migrate_schema(db)
+        # 将已有基金账户余额同步到持仓表
+        _sync_existing_fund_accounts(db)
 
         cal = TradingCalendarService(db)
         cal.sync_calendar_from_remote(date.today().year)
@@ -122,6 +124,45 @@ def _migrate_schema(db):
             db.rollback()
             # 列已存在则忽略
             logger.debug(f"DDL 迁移: {table}.{column} 已存在，跳过")
+
+
+def _sync_existing_fund_accounts(db):
+    """一次性将已有基金账户的 balance 同步到 FundHolding 表"""
+    from app.models.account import SavingsAccount
+    from app.models.fund import Fund
+    from app.models.holding import FundHolding
+
+    fund_accounts = (
+        db.query(SavingsAccount)
+        .filter_by(account_type="fund", is_active=1)
+        .all()
+    )
+    created = 0
+    for acct in fund_accounts:
+        if not acct.fund_code or acct.balance <= 0:
+            continue
+        existing = (
+            db.query(FundHolding)
+            .filter_by(user_id=acct.user_id, fund_code=acct.fund_code)
+            .first()
+        )
+        if existing:
+            continue  # 已有持仓，跳过
+        fund = db.query(Fund).filter_by(code=acct.fund_code, user_id=acct.user_id).first()
+        holding = FundHolding(
+            user_id=acct.user_id,
+            fund_code=acct.fund_code,
+            fund_name=fund.name if fund else acct.fund_code,
+            total_cost=acct.balance,
+            current_value=acct.balance,
+            status="holding",
+        )
+        db.add(holding)
+        created += 1
+
+    if created:
+        db.commit()
+        logger.info(f"一次性同步: 为 {created} 个已有基金账户创建持仓记录")
 
 # ---------------------------------------------------------------------------
 # 应用实例
