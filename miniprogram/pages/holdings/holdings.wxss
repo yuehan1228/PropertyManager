@@ -1,0 +1,37 @@
+.page-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+.holding-card {
+  margin: 12rpx 24rpx;
+}
+.holding-name {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.holding-code {
+  font-size: 24rpx;
+  color: #9ca3af;
+  margin-top: 4rpx;
+}
+.holding-value {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.holding-detail {
+  gap: 16rpx;
+}
+.detail-item {
+  flex: 1;
+}
+.detail-label {
+  display: block;
+  font-size: 22rpx;
+  color: #9ca3af;
+}
+.detail-value {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 500;
+}

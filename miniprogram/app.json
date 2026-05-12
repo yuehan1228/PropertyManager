@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/accounts/accounts",
+    "pages/funds/funds",
+    "pages/funds/detail",
+    "pages/holdings/holdings",
+    "pages/plans/plans",
+    "pages/plans/form",
+    "pages/transactions/transactions",
+    "pages/add-fund/add-fund"
+  ],
+  "window": {
+    "navigationBarTitleText": "资产追踪",
+    "navigationBarBackgroundColor": "#1a1a2e",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f6fa"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#0f3460",
+    "backgroundColor": "#fff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "总览"
+      },
+      {
+        "pagePath": "pages/funds/funds",
+        "text": "基金"
+      },
+      {
+        "pagePath": "pages/plans/plans",
+        "text": "定投"
+      },
+      {
+        "pagePath": "pages/accounts/accounts",
+        "text": "账户"
+      }
+    ]
+  },
+  "usingComponents": {
+    "fund-card": "/components/fund-card/fund-card",
+    "account-item": "/components/account-item/account-item",
+    "empty-state": "/components/empty-state/empty-state",
+    "nav-bar": "/components/nav-bar/nav-bar"
+  },
+  "sitemapLocation": "sitemap.json"
+}

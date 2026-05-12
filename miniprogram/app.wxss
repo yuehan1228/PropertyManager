@@ -1,0 +1,110 @@
+/* 全局样式 */
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #333;
+  background: #f5f6fa;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+/* 颜色变量 */
+:root {
+  --primary: #0f3460;
+  --primary-light: #16213e;
+  --accent: #e94560;
+  --green: #10b981;
+  --red: #ef4444;
+  --orange: #f59e0b;
+  --gray-100: #f5f6fa;
+  --gray-200: #e5e7eb;
+  --gray-400: #9ca3af;
+  --gray-600: #6b7280;
+  --gray-800: #374151;
+}
+
+/* 通用工具类 */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.gap-xs { gap: 8rpx; }
+.gap-sm { gap: 16rpx; }
+.gap-md { gap: 24rpx; }
+.mt-sm { margin-top: 16rpx; }
+.mt-md { margin-top: 32rpx; }
+.mb-sm { margin-bottom: 16rpx; }
+.p-sm { padding: 16rpx; }
+.p-md { padding: 24rpx; }
+
+/* 金额颜色 */
+.amount-up { color: #ef4444; }    /* 涨/盈利 红色 */
+.amount-down { color: #10b981; }  /* 跌/亏损 绿色 */
+.amount-neutral { color: #6b7280; }
+
+/* 卡片 */
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  margin: 16rpx 24rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+
+/* 按钮 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+  padding: 0 40rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #0f3460, #16213e);
+  color: #fff;
+}
+.btn-outline {
+  background: #fff;
+  color: #0f3460;
+  border: 2rpx solid #0f3460;
+}
+.btn-ghost {
+  background: transparent;
+  color: #6b7280;
+}
+.btn-sm {
+  height: 56rpx;
+  padding: 0 24rpx;
+  font-size: 24rpx;
+}
+.btn-block {
+  display: flex;
+  width: 100%;
+}
+
+/* 标签 */
+.tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+}
+.tag-green { background: #d1fae5; color: #065f46; }
+.tag-red { background: #fee2e2; color: #991b1b; }
+.tag-blue { background: #dbeafe; color: #1e40af; }
+.tag-gray { background: #f3f4f6; color: #6b7280; }
+.tag-yellow { background: #fef3c7; color: #92400e; }
+
+/* 分割线 */
+.divider {
+  height: 1rpx;
+  background: #e5e7eb;
+  margin: 16rpx 0;
+}

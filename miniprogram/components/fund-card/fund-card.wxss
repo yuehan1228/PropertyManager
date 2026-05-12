@@ -1,0 +1,24 @@
+.fund-card {
+  margin: 8rpx 24rpx;
+}
+.fund-icon {
+  font-size: 48rpx;
+  margin-right: 20rpx;
+}
+.fund-name {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+.fund-code {
+  font-size: 24rpx;
+  color: #9ca3af;
+  margin-top: 4rpx;
+}
+.fund-nav {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.fund-change {
+  font-size: 24rpx;
+  margin-top: 4rpx;
+}

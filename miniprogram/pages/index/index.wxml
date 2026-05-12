@@ -1,0 +1,83 @@
+<!-- 总资产看板 -->
+<view class="page-index">
+
+  <!-- 头部卡片 -->
+  <view class="header-card">
+    <view class="header-label">总资产 (CNY)</view>
+    <view class="header-amount">{{dashboard ? fmt(dashboard.total_assets) : '--'}}</view>
+    <view class="header-sub flex justify-between items-center">
+      <view class="header-sub-item">
+        <text class="sub-label">昨日收益</text>
+        <text class="sub-value {{dashboard && dashboard.daily_profit >= 0 ? 'amount-up' : 'amount-down'}}">
+          {{dashboard ? sign(dashboard.daily_profit) + fmt(dashboard.daily_profit) : '--'}}
+        </text>
+      </view>
+      <view class="header-sub-item text-right">
+        <text class="sub-label">累计盈亏</text>
+        <text class="sub-value {{dashboard && dashboard.cumulative_profit >= 0 ? 'amount-up' : 'amount-down'}}">
+          {{dashboard ? sign(dashboard.cumulative_profit) + fmt(dashboard.cumulative_profit) : '--'}}
+        </text>
+      </view>
+    </view>
+    <view class="header-asset-split flex justify-between mt-sm">
+      <view class="split-item" bindtap="goAccounts">
+        <text class="split-label">💰 储蓄卡</text>
+        <text class="split-value">{{dashboard ? fmt(dashboard.total_savings) : '--'}}</text>
+      </view>
+      <view class="split-item text-right" bindtap="goFunds">
+        <text class="split-label">📈 基金市值</text>
+        <text class="split-value">{{dashboard ? fmt(dashboard.total_fund_value) : '--'}}</text>
+      </view>
+    </view>
+    <view class="refresh-time" wx:if="{{refreshTime}}">更新于 {{refreshTime}}</view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="actions-row flex justify-between">
+    <button class="action-btn" bindtap="goTransactions">
+      <text class="action-icon">📋</text>
+      <text class="action-text">交易记录</text>
+    </button>
+    <button class="action-btn" bindtap="goHoldings">
+      <text class="action-icon">📊</text>
+      <text class="action-text">持仓明细</text>
+    </button>
+    <button class="action-btn" bindtap="goAccounts">
+      <text class="action-icon">💳</text>
+      <text class="action-text">管理账户</text>
+    </button>
+    <button class="action-btn" bindtap="goFunds">
+      <text class="action-icon">🔍</text>
+      <text class="action-text">基金列表</text>
+    </button>
+  </view>
+
+  <!-- 持仓概况 -->
+  <view class="section-title">持仓概况</view>
+  <view wx:if="{{dashboard && dashboard.holdings && dashboard.holdings.length > 0}}">
+    <view class="card holding-row flex justify-between items-center"
+          wx:for="{{dashboard.holdings}}"
+          wx:key="id"
+          bindtap="goHoldings"
+          data-code="{{item.fund_code}}">
+      <view class="flex-1">
+        <view class="holding-name">{{item.fund_name || item.fund_code}}</view>
+        <view class="holding-shares">份额 {{item.total_shares.toFixed(2)}}</view>
+      </view>
+      <view class="text-right">
+        <view class="holding-value">{{fmt(item.current_value || item.total_shares * 0)}}</view>
+        <view class="{{item.daily_profit >= 0 ? 'amount-up' : 'amount-down'}}">
+          {{sign(item.daily_profit)}}{{fmt(item.daily_profit)}}
+        </view>
+      </view>
+    </view>
+  </view>
+  <empty-state wx:else message="暂无持仓" tip="添加基金并买入吧" />
+
+  <!-- 最近快照（简化曲线提示） -->
+  <view class="section-title">资产趋势</view>
+  <view class="card chart-placeholder flex items-center justify-center">
+    <text class="amount-neutral">每日快照已自动记录</text>
+  </view>
+
+</view>

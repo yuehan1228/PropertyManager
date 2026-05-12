@@ -1,0 +1,21 @@
+<view class="page-add-fund">
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">基金代码 (6位)</text>
+      <input class="form-input code-input" type="number" maxlength="6"
+             placeholder="如：000001" value="{{code}}"
+             bindinput="onCodeInput" focus />
+    </view>
+    <view class="text-center mt-sm">
+      <text class="amount-neutral" style="font-size:24rpx;">
+        输入基金代码后将自动拉取基金名称和最新净值
+      </text>
+    </view>
+    <view class="mt-md">
+      <button class="btn btn-primary btn-block" bindtap="onSubmit" loading="{{submitting}}"
+              disabled="{{code.length !== 6}}">
+        确认添加
+      </button>
+    </view>
+  </view>
+</view>

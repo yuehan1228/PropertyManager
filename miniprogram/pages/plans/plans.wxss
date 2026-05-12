@@ -1,0 +1,46 @@
+.page-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+.tabs {
+  margin: 0 24rpx 16rpx;
+  gap: 8rpx;
+}
+.tab-item {
+  padding: 12rpx 32rpx;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.tab-item.active {
+  background: #0f3460;
+  color: #fff;
+}
+.plan-card {
+  margin: 12rpx 24rpx;
+}
+.plan-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+.plan-info {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+}
+.plan-amount {
+  font-size: 26rpx;
+  color: #6b7280;
+}
+.plan-progress {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+.plan-next {
+  font-size: 24rpx;
+  color: #9ca3af;
+  margin-top: 8rpx;
+}

@@ -1,0 +1,47 @@
+<view class="page-holdings">
+  <view class="page-header p-md">
+    <text class="page-title">持仓明细</text>
+  </view>
+
+  <view wx:if="{{holdings.length > 0}}">
+    <view class="card holding-card" wx:for="{{holdings}}" wx:key="id"
+          bindtap="goFund" data-code="{{item.fund_code}}">
+      <view class="flex justify-between items-center">
+        <view class="flex-1">
+          <view class="holding-name">{{item.fund_name || item.fund_code}}</view>
+          <view class="holding-code">{{item.fund_code}}</view>
+        </view>
+        <view class="text-right">
+          <view class="holding-value">{{fmt(item.current_value)}}</view>
+          <view class="{{item.daily_profit >= 0 ? 'amount-up' : 'amount-down'}}">
+            {{sign(item.daily_profit)}}{{fmt(item.daily_profit)}}
+          </view>
+        </view>
+      </view>
+      <view class="divider" />
+      <view class="holding-detail flex justify-between">
+        <view class="detail-item">
+          <text class="detail-label">持仓份额</text>
+          <text class="detail-value">{{item.total_shares.toFixed(2)}}</text>
+        </view>
+        <view class="detail-item text-right">
+          <text class="detail-label">可用 / 冻结</text>
+          <text class="detail-value">{{item.available_shares.toFixed(2)}} / {{item.frozen_shares.toFixed(2)}}</text>
+        </view>
+      </view>
+      <view class="holding-detail flex justify-between mt-sm">
+        <view class="detail-item">
+          <text class="detail-label">成本净值</text>
+          <text class="detail-value">{{item.avg_cost_nav ? item.avg_cost_nav.toFixed(4) : '--'}}</text>
+        </view>
+        <view class="detail-item text-right">
+          <text class="detail-label">累计盈亏</text>
+          <text class="detail-value {{item.total_profit >= 0 ? 'amount-up' : 'amount-down'}}">
+            {{sign(item.total_profit)}}{{fmt(item.total_profit)}} ({{item.profit_rate.toFixed(2)}}%)
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+  <empty-state wx:else message="暂无持仓" tip="买入基金后在此查看详情" />
+</view>

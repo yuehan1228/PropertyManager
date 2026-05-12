@@ -1,0 +1,6 @@
+<view class="empty-state flex flex-col items-center justify-center">
+  <text class="empty-icon">📭</text>
+  <text class="empty-message">{{message || '暂无数据'}}</text>
+  <text class="empty-tip" wx:if="{{tip}}">{{tip}}</text>
+  <slot></slot>
+</view>

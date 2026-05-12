@@ -1,0 +1,16 @@
+.empty-state {
+  padding: 80rpx 40rpx;
+}
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+.empty-message {
+  font-size: 28rpx;
+  color: #9ca3af;
+}
+.empty-tip {
+  font-size: 24rpx;
+  color: #d1d5db;
+  margin-top: 8rpx;
+}

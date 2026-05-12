@@ -1,0 +1,13 @@
+<view class="fund-card card flex items-center" bindtap="onTap">
+  <view class="fund-icon">{{icon || '📈'}}</view>
+  <view class="fund-info flex-1">
+    <view class="fund-name">{{name || code}}</view>
+    <view class="fund-code">{{code}}</view>
+  </view>
+  <view class="fund-meta text-right">
+    <view class="fund-nav">{{navText}}</view>
+    <view class="fund-change {{change >= 0 ? 'amount-up' : 'amount-down'}}">
+      {{change >= 0 ? '+' : ''}}{{fmt(change)}}%
+    </view>
+  </view>
+</view>

@@ -1,0 +1,15 @@
+.form-group {
+  margin-bottom: 12rpx;
+}
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: #6b7280;
+  margin-bottom: 12rpx;
+}
+.code-input {
+  font-size: 48rpx !important;
+  letter-spacing: 12rpx;
+  text-align: center;
+  font-weight: 700;
+}

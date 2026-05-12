@@ -1,0 +1,13 @@
+<view class="account-item card flex items-center justify-between" bindtap="onTap">
+  <view class="flex items-center gap-sm">
+    <text class="account-icon">💳</text>
+    <view>
+      <view class="account-label">{{label}}</view>
+      <view class="account-bank" wx:if="{{bank}}">{{bank}}</view>
+    </view>
+  </view>
+  <view class="text-right">
+    <view class="account-balance">{{fmt(balance)}}</view>
+    <view class="account-currency">{{currency}}</view>
+  </view>
+</view>

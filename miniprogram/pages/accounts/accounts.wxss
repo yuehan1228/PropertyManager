@@ -1,0 +1,47 @@
+.page-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+/* 弹层 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+.modal-content {
+  background: #fff;
+  width: 100%;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 32rpx 32rpx 48rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+.form-group {
+  margin-bottom: 24rpx;
+}
+.form-label {
+  display: block;
+  font-size: 26rpx;
+  color: #6b7280;
+  margin-bottom: 8rpx;
+}
+.form-input {
+  height: 80rpx;
+  background: #f5f6fa;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+}
+.form-actions {
+  margin-top: 32rpx;
+}

@@ -1,0 +1,45 @@
+<view class="page-transactions">
+  <view class="page-header p-md">
+    <text class="page-title">交易记录</text>
+  </view>
+
+  <!-- 简单筛选 -->
+  <view class="filter-row flex gap-sm p-md">
+    <picker mode="selector" range="{{['','buy','sell','auto_buy']}}" range-key="type" data-field="trans_type" bindchange="onFilterChange">
+      <view class="filter-tag tag tag-blue">类型</view>
+    </picker>
+    <picker mode="selector" range="{{['','pending','confirmed','settled']}}" data-field="status" bindchange="onFilterChange">
+      <view class="filter-tag tag tag-yellow">状态</view>
+    </picker>
+  </view>
+
+  <view wx:if="{{transactions.length > 0}}">
+    <view class="card txn-card" wx:for="{{transactions}}" wx:key="id">
+      <view class="flex justify-between items-center">
+        <view class="flex items-center gap-sm">
+          <text class="txn-icon">{{item.trans_type === 'buy' || item.trans_type === 'auto_buy' ? '📥' : '📤'}}</text>
+          <view>
+            <view class="txn-name">{{item.fund_name || item.fund_code}}</view>
+            <view class="txn-type">{{typeLabel(item.trans_type)}} · {{item.order_date}}</view>
+          </view>
+        </view>
+        <view class="text-right">
+          <view class="txn-amount">¥{{fmt(item.amount)}}</view>
+          <view class="txn-shares" wx:if="{{item.shares}}">{{item.shares.toFixed(2)}} 份</view>
+        </view>
+      </view>
+      <view class="divider" />
+      <view class="flex justify-between items-center">
+        <view class="flex gap-xs">
+          <text class="tag {{item.status === 'settled' ? 'tag-green' : item.status === 'confirmed' ? 'tag-blue' : 'tag-yellow'}}">
+            {{statusLabel(item.status)}}
+          </text>
+          <text class="txn-meta" wx:if="{{item.confirm_date}}">确认: {{item.confirm_date}}</text>
+        </view>
+        <button class="btn btn-ghost btn-sm" data-id="{{item.id}}" bindtap="onDelete"
+                wx:if="{{item.status === 'pending'}}">删除</button>
+      </view>
+    </view>
+  </view>
+  <empty-state wx:else message="暂无交易记录" />
+</view>

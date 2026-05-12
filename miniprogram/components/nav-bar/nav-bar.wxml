@@ -1,0 +1,6 @@
+<!-- 自定义导航栏（可选） -->
+<view class="nav-bar" wx:if="{{false}}">
+  <view class="nav-back" wx:if="{{showBack}}" bindtap="onBack">←</view>
+  <view class="nav-title">{{title}}</view>
+  <view class="nav-placeholder"></view>
+</view>

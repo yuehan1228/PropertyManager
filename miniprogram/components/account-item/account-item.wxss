@@ -1,0 +1,23 @@
+.account-item {
+  margin: 8rpx 24rpx;
+}
+.account-icon {
+  font-size: 48rpx;
+}
+.account-label {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+.account-bank {
+  font-size: 24rpx;
+  color: #9ca3af;
+  margin-top: 4rpx;
+}
+.account-balance {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.account-currency {
+  font-size: 22rpx;
+  color: #9ca3af;
+}

@@ -1,0 +1,21 @@
+<view class="page-funds">
+  <view class="page-header flex justify-between items-center p-md">
+    <text class="page-title">基金列表</text>
+    <button class="btn btn-primary btn-sm" bindtap="goAddFund">+ 添加基金</button>
+  </view>
+
+  <view wx:if="{{funds.length > 0}}">
+    <fund-card
+      wx:for="{{funds}}"
+      wx:key="code"
+      code="{{item.code}}"
+      name="{{item.name}}"
+      nav="{{item.nav}}"
+      change="{{item.daily_change}}"
+      navText="{{item.nav ? item.nav.toFixed(4) : '--'}}"
+      bindtap="goDetail"
+    />
+  </view>
+
+  <empty-state wx:else message="暂无基金" tip="点击上方按钮添加第一只基金" />
+</view>

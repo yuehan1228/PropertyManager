@@ -1,0 +1,20 @@
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  padding: 0 24rpx;
+  background: #1a1a2e;
+  color: #fff;
+}
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 600;
+}
+.nav-back {
+  font-size: 36rpx;
+  padding: 8rpx;
+}
+.nav-placeholder {
+  width: 60rpx;
+}

@@ -1,0 +1,38 @@
+.form-section {
+  margin-bottom: 16rpx;
+}
+.section-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+  color: #374151;
+}
+.form-group {
+  margin-bottom: 20rpx;
+}
+.form-label {
+  display: block;
+  font-size: 26rpx;
+  color: #6b7280;
+  margin-bottom: 8rpx;
+}
+.form-input, .picker-value {
+  height: 80rpx;
+  background: #f5f6fa;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+}
+.picker-value.placeholder {
+  color: #9ca3af;
+}
+.radio-row {
+  padding: 12rpx 0;
+  gap: 12rpx;
+  font-size: 28rpx;
+}
+.form-actions {
+  padding-top: 24rpx;
+}
