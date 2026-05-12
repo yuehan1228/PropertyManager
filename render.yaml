@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: property-manager
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:///./fund_tracker.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TIMEZONE
+        value: Asia/Shanghai
+
+  # 每 10 分钟 ping 一次，防止免费层休眠
+  - type: cron
+    name: keep-alive
+    runtime: node
+    schedule: "*/10 * * * *"
+    startCommand: npx -y node-fetch@2 -e "require('node-fetch')('https://property-manager.onrender.com/health').then(r=>r.json()).then(d=>console.log(d))"
