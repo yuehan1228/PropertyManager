@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: property-manager
+    name: propertymanager
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
@@ -15,8 +15,9 @@ services:
         value: Asia/Shanghai
 
   # 每 10 分钟 ping 一次，防止免费层休眠
+  # 使用 Render 内部网络 (服务名:端口)，不依赖外部域名
   - type: cron
     name: keep-alive
     runtime: node
     schedule: "*/10 * * * *"
-    startCommand: npx -y node-fetch@2 -e "require('node-fetch')('https://property-manager.onrender.com/health').then(r=>r.json()).then(d=>console.log(d))"
+    startCommand: npx -y node-fetch@2 -e "require('node-fetch')('http://propertymanager:10000/health').then(r=>r.json()).then(d=>console.log(d))"

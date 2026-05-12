@@ -1,15 +1,17 @@
 App({
   globalData: {
-    baseUrl: 'https://rated-vegetables-airfare-amber.trycloudflare.com', // cloudflared 隧道（重启会变）
+    baseUrl: 'https://propertymanager-irkx.onrender.com',
     token: null,
     userInfo: null,
   },
 
   onLaunch() {
-    // 恢复后端地址
+    // 恢复后端地址（自动清理旧的 cloudflared 隧道地址）
     const savedUrl = wx.getStorageSync('baseUrl')
-    if (savedUrl) {
+    if (savedUrl && !savedUrl.includes('trycloudflare.com')) {
       this.globalData.baseUrl = savedUrl
+    } else if (savedUrl) {
+      wx.removeStorageSync('baseUrl')
     }
 
     // 恢复登录态

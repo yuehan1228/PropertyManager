@@ -1,8 +1,0 @@
-{
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-  "healthCheck": {
-    "path": "/health"
-  }
-}
