@@ -71,16 +71,35 @@ Page({
 
   async _loadFundSummary(code) {
     try {
-      const [holdings, pendingTxns] = await Promise.all([
+      const [holdings, pendingTxns, accounts] = await Promise.all([
         listHoldings(),
         listTransactions({ status: 'pending', limit: 200 }),
+        listAccounts(),
       ])
-      const holding = holdings.find(h => h.fund_code === code)
+      let holding = holdings.find(h => h.fund_code === code)
+
+      // 防御：若持仓表无记录，从基金账户的 balance 回退
+      const acct = accounts.find(a => a.account_type === 'fund' && a.fund_code === code)
+      const acctBalance = acct ? (acct.balance || 0) : 0
+      const acctPending = acct ? (acct.pending_amount || 0) : 0
+
+      if (!holding && acct && acctBalance > 0) {
+        holding = {
+          fund_code: code,
+          total_cost: acctBalance,
+          current_value: acctBalance,
+          total_shares: 0,
+          daily_profit: 0,
+          profit_rate: 0,
+        }
+      }
+
       const pendingTotal = pendingTxns
         .filter(t => t.fund_code === code)
-        .reduce((sum, t) => sum + (t.amount || 0), 0)
+        .reduce((sum, t) => sum + (t.amount || 0), acctPending)
 
       const profit = holding ? (holding.daily_profit || 0) : 0
+      const hasHold = !!holding || (acct && acctBalance > 0)
       this.setData({
         fundSummary: {
           totalCost: holding ? this._fmt(holding.total_cost) : null,
@@ -90,7 +109,7 @@ Page({
           profitRate: holding ? Number(holding.profit_rate || 0).toFixed(2) : null,
           profitClass: profit >= 0 ? 'amount-up' : 'amount-down',
           pendingAmt: pendingTotal > 0 ? this._fmt(pendingTotal) : null,
-          hasHold: !!holding,
+          hasHold,
           hasPending: pendingTotal > 0,
         },
       })

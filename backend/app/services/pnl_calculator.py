@@ -34,6 +34,9 @@ class PnLCalculator:
         daily_profit = 0.0
 
         for h in holdings:
+            # 无持仓份额的跳过（手动录入余额、未实际购买）
+            if h.total_shares <= 0:
+                continue
             fund_q = self.db.query(Fund).filter_by(code=h.fund_code)
             if user_id is not None:
                 fund_q = fund_q.filter_by(user_id=user_id)
@@ -94,7 +97,7 @@ class PnLCalculator:
                 .filter_by(fund_code=acct.fund_code, user_id=acct.user_id)
                 .first()
             )
-            if holding:
+            if holding and holding.total_shares > 0:
                 acct.balance = round(holding.current_value, 2)
         self.db.commit()
 
