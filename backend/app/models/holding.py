@@ -9,6 +9,7 @@ class FundHolding(Base):
     __tablename__ = "fund_holdings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True, default=1)
     fund_code: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
     fund_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     total_shares: Mapped[float] = mapped_column(Float, default=0.0)

@@ -1,4 +1,5 @@
 from app.models.base import Base
+from app.models.user import User
 from app.models.account import SavingsAccount
 from app.models.fund import Fund, FundNavHistory
 from app.models.holding import FundHolding
@@ -9,6 +10,7 @@ from app.models.calendar import TradingCalendar
 
 __all__ = [
     "Base",
+    "User",
     "SavingsAccount",
     "Fund",
     "FundNavHistory",

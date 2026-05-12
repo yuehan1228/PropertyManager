@@ -38,6 +38,11 @@ async def lifespan(app: FastAPI):
 
     db = SessionLocal()
     try:
+        # 数据迁移：确保所有旧数据有 user_id（兼容升级）
+        _migrate_existing_data(db)
+        # DDL 迁移：补充缺失列
+        _migrate_schema(db)
+
         cal = TradingCalendarService(db)
         cal.sync_calendar_from_remote(date.today().year)
     except Exception:
@@ -54,6 +59,69 @@ async def lifespan(app: FastAPI):
     from app.tasks.scheduler import stop_scheduler
     stop_scheduler()
     logger.info("应用已关闭")
+
+
+def _migrate_existing_data(db):
+    """将没有 user_id 的旧数据迁移到默认用户"""
+    from app.models.user import User
+    from app.models.account import SavingsAccount
+    from app.models.fund import Fund
+    from app.models.holding import FundHolding
+    from app.models.plan import InvestmentPlan
+    from app.models.transaction import TransactionRecord
+    from app.models.snapshot import DailyAssetSnapshot
+
+    # 确保默认用户存在
+    default_user = db.query(User).filter_by(openid="dev_user").first()
+    if not default_user:
+        default_user = User(id=1, openid="dev_user", nickname="默认用户")
+        db.add(default_user)
+        db.commit()
+        db.refresh(default_user)
+        logger.info("已创建默认用户 (id=1)")
+
+    # 为各表 NULL user_id 的行设置默认值
+    models = [
+        (SavingsAccount, "savings_accounts"),
+        (Fund, "funds"),
+        (FundHolding, "fund_holdings"),
+        (InvestmentPlan, "investment_plans"),
+        (TransactionRecord, "transaction_records"),
+        (DailyAssetSnapshot, "daily_asset_snapshots"),
+    ]
+    for model, table_name in models:
+        try:
+            count = (
+                db.query(model)
+                .filter(model.user_id.is_(None))
+                .update({model.user_id: 1}, synchronize_session=False)
+            )
+            if count:
+                db.commit()
+                logger.info(f"已迁移 {table_name}: {count} 行 → user_id=1")
+        except Exception:
+            logger.exception(f"迁移 {table_name} 失败，可能列不存在")
+    logger.info("数据迁移完成")
+
+
+def _migrate_schema(db):
+    """补充缺失的数据库列（DDL 迁移）"""
+    from sqlalchemy import text
+
+    migrations = [
+        ("savings_accounts", "account_type", "VARCHAR(8) NOT NULL DEFAULT 'bank'"),
+        ("savings_accounts", "fund_code", "VARCHAR(16)"),
+        ("savings_accounts", "pending_amount", "FLOAT NOT NULL DEFAULT 0.0"),
+    ]
+    for table, column, col_def in migrations:
+        try:
+            db.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_def}"))
+            db.commit()
+            logger.info(f"DDL 迁移: {table}.{column} 已添加")
+        except Exception:
+            db.rollback()
+            # 列已存在则忽略
+            logger.debug(f"DDL 迁移: {table}.{column} 已存在，跳过")
 
 # ---------------------------------------------------------------------------
 # 应用实例
@@ -105,8 +173,9 @@ async def global_exception_handler(request: Request, exc: Exception):
 # ---------------------------------------------------------------------------
 # 路由注册
 # ---------------------------------------------------------------------------
-from app.routers import accounts, funds, holdings, transactions, plans, dashboard, admin
+from app.routers import accounts, funds, holdings, transactions, plans, dashboard, admin, auth
 
+app.include_router(auth.router)
 app.include_router(accounts.router)
 app.include_router(funds.router)
 app.include_router(holdings.router)

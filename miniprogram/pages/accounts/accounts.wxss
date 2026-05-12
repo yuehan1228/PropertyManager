@@ -45,3 +45,22 @@
 .form-actions {
   margin-top: 32rpx;
 }
+/* 类型切换 */
+.type-switch {
+  gap: 0;
+  border-radius: 12rpx;
+  overflow: hidden;
+  border: 2rpx solid #e5e7eb;
+}
+.type-tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  background: #f9fafb;
+  color: #9ca3af;
+}
+.type-tab.active {
+  background: #0f3460;
+  color: #fff;
+}

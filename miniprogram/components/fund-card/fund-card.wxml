@@ -5,9 +5,7 @@
     <view class="fund-code">{{code}}</view>
   </view>
   <view class="fund-meta text-right">
-    <view class="fund-nav">{{navText}}</view>
-    <view class="fund-change {{change >= 0 ? 'amount-up' : 'amount-down'}}">
-      {{change >= 0 ? '+' : ''}}{{fmt(change)}}%
-    </view>
+    <view class="fund-nav">{{navText || '--'}}</view>
+    <view class="fund-change {{changeClass}}">{{changeText}}</view>
   </view>
 </view>

@@ -4,36 +4,44 @@
     <button class="btn btn-primary btn-sm" bindtap="goForm">+ 新建计划</button>
   </view>
 
-  <!-- 标签切换 -->
   <view class="tabs flex">
-    <view class="tab-item {{tab === 'active' ? 'active' : ''}}" data-tab="active" bindtap="onTabChange">
-      进行中
-    </view>
-    <view class="tab-item {{tab === 'all' ? 'active' : ''}}" data-tab="all" bindtap="onTabChange">
-      全部
-    </view>
+    <view class="tab-item {{tab === 'active' ? 'active' : ''}}" data-tab="active" bindtap="onTabChange">进行中</view>
+    <view class="tab-item {{tab === 'all' ? 'active' : ''}}" data-tab="all" bindtap="onTabChange">全部</view>
   </view>
 
   <view wx:if="{{plans.length > 0}}">
     <view class="card plan-card" wx:for="{{plans}}" wx:key="id">
       <view class="flex justify-between items-center">
         <view class="flex-1">
-          <view class="plan-name">{{item.plan_name}}</view>
           <view class="plan-info">
             <text class="tag tag-blue">{{item.fund_code}}</text>
-            <text class="plan-amount">¥{{item.amount.toFixed(2)}} / {{freqLabel(item.frequency)}}</text>
+            <text class="plan-amount">¥{{item._amount}} / {{item._freq}}</text>
           </view>
         </view>
         <view class="plan-status">
-          <text class="tag {{item.status === 'active' ? 'tag-green' : 'tag-gray'}}">
-            {{item.status === 'active' ? '运行中' : item.status === 'paused' ? '已暂停' : '已停止'}}
-          </text>
+          <text class="tag {{item._statusClass}}">{{item._statusLabel}}</text>
         </view>
       </view>
+
+      <!-- 持仓信息 -->
+      <view class="plan-hold-row flex justify-between mt-sm">
+        <view class="hold-item">
+          <text class="hold-label">当前市值</text>
+          <text class="hold-value {{item._hasHold ? 'amount-up' : 'amount-neutral'}}">¥{{item._holdValue}}</text>
+        </view>
+        <view class="hold-item text-right">
+          <text class="hold-label">持仓份额</text>
+          <text class="hold-value">{{item._holdShares}}</text>
+        </view>
+      </view>
+
       <view class="divider" />
       <view class="flex justify-between items-center">
-        <view class="plan-progress">
-          已完成 {{item.completed_rounds}}{{item.total_rounds ? '/' + item.total_rounds : ''}} 期
+        <view>
+          <view class="plan-progress">{{item._progress}}</view>
+          <view class="plan-pending" wx:if="{{item._hasPending}}">
+            <text class="tag tag-yellow">⏳ 待确认 ¥{{item._pendingAmt}}</text>
+          </view>
         </view>
         <view class="flex gap-xs">
           <button class="btn btn-outline btn-sm" data-id="{{item.id}}" bindtap="goForm">编辑</button>

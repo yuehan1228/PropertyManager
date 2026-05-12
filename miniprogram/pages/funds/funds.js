@@ -15,11 +15,21 @@ Page({
   },
 
   async loadData() {
-    this.setData({ loading: true })
     try {
       const funds = await listFunds(1)
-      this.setData({ funds, loading: false })
+      // 预格式化展示字段
+      const list = (funds || []).map(item => {
+        const chg = Number(item.daily_change || 0)
+        return {
+          ...item,
+          _navText: item.nav != null ? Number(item.nav).toFixed(4) : '--',
+          _changeText: (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%',
+          _changeClass: chg >= 0 ? 'amount-up' : 'amount-down',
+        }
+      })
+      this.setData({ funds: list, loading: false })
     } catch (e) {
+      console.error('加载基金列表失败:', e)
       this.setData({ loading: false })
     }
   },

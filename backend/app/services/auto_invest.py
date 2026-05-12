@@ -25,7 +25,7 @@ class AutoInvestService:
     # 每日执行
     # ----------------------------------------------------------------
 
-    def execute_due_plans(self, today: date) -> int:
+    def execute_due_plans(self, today: date, user_id: int | None = None) -> int:
         """
         执行所有到期定投计划
         返回实际执行的笔数
@@ -33,15 +33,16 @@ class AutoInvestService:
         today_str = today.isoformat()
         executed = 0
 
-        # 查询所有 next_execute_date <= today 的活跃计划
-        due_plans = (
+        q = (
             self.db.query(InvestmentPlan)
             .filter(
                 InvestmentPlan.next_execute_date <= today_str,
                 InvestmentPlan.status == "active",
             )
-            .all()
         )
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+        due_plans = q.all()
 
         for plan in due_plans:
             if self._execute_one(plan, today):
@@ -60,6 +61,8 @@ class AutoInvestService:
         """执行单个定投计划，返回是否执行成功"""
         execute_date = today
 
+        user_id = plan.user_id
+
         # 1. 是否交易日
         if not self.calendar.is_trading_day(execute_date):
             execute_date = self.calendar.get_next_trading_day(execute_date)
@@ -67,7 +70,11 @@ class AutoInvestService:
             return False
 
         # 2. 检查账户余额
-        account = self.db.query(SavingsAccount).get(plan.from_account_id)
+        account = (
+            self.db.query(SavingsAccount)
+            .filter_by(id=plan.from_account_id, user_id=user_id)
+            .first()
+        )
         if not account or not account.is_active:
             logger.warning(f"定投计划 {plan.plan_name}: 账户不可用")
             self._schedule_next(plan, execute_date)
@@ -82,7 +89,11 @@ class AutoInvestService:
             return False
 
         # 3. 获取基金信息
-        fund = self.db.query(Fund).filter_by(code=plan.fund_code).first()
+        fund = (
+            self.db.query(Fund)
+            .filter_by(code=plan.fund_code, user_id=user_id)
+            .first()
+        )
         if not fund or not fund.nav:
             logger.warning(f"定投计划 {plan.plan_name}: 净值不可用")
             # 顺延至下一交易日
@@ -106,6 +117,7 @@ class AutoInvestService:
 
         # 7. 创建交易记录
         txn = TransactionRecord(
+            user_id=user_id,
             trans_type="auto_buy",
             fund_code=plan.fund_code,
             fund_name=fund.name,
@@ -126,7 +138,7 @@ class AutoInvestService:
 
         # 8. 冻结持仓份额
         holding = self._get_or_create_holding(
-            plan.fund_code, plan.from_account_id
+            plan.fund_code, plan.from_account_id, user_id
         )
         holding.frozen_shares += round(shares, 4)
 
@@ -190,15 +202,21 @@ class AutoInvestService:
         return round(amount * rate, 2)
 
     def _get_or_create_holding(self, fund_code: str,
-                                source_account_id: int | None) -> FundHolding:
+                                source_account_id: int | None,
+                                user_id: int | None = None) -> FundHolding:
         holding = (
             self.db.query(FundHolding)
-            .filter_by(fund_code=fund_code, source_account_id=source_account_id)
+            .filter_by(fund_code=fund_code, source_account_id=source_account_id, user_id=user_id)
             .first()
         )
         if not holding:
-            fund = self.db.query(Fund).filter_by(code=fund_code).first()
+            fund = (
+                self.db.query(Fund)
+                .filter_by(code=fund_code, user_id=user_id)
+                .first()
+            )
             holding = FundHolding(
+                user_id=user_id or 1,
                 fund_code=fund_code,
                 fund_name=fund.name if fund else fund_code,
                 source_account_id=source_account_id,

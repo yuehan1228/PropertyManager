@@ -1,0 +1,118 @@
+<view class="page-holding-detail" wx:if="{{holding}}">
+  <!-- 头部 -->
+  <view class="detail-header card">
+    <view class="flex justify-between items-center">
+      <view class="flex-1">
+        <view class="header-name">{{holding.fund_name || holding.fund_code}}</view>
+        <view class="header-code">{{holding.fund_code}}</view>
+      </view>
+      <view class="text-right">
+        <view class="header-value">{{holding._value}}</view>
+        <view class="{{holding._profitClass}}">{{holding._profit}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="action-bar flex gap-sm p-md">
+    <button class="btn btn-primary flex-1" bindtap="goBuy">📥 买入更多</button>
+    <button class="btn btn-outline flex-1" bindtap="goSell">📤 赎回</button>
+  </view>
+
+  <!-- 持仓数据 -->
+  <view class="section-title">持仓数据</view>
+  <view class="card">
+    <!-- 只读模式 -->
+    <view wx:if="{{!editing}}">
+      <view class="info-row flex justify-between">
+        <text class="info-label">持仓份额</text>
+        <text class="info-value">{{holding._totalShares}}</text>
+      </view>
+      <view class="info-row flex justify-between">
+        <text class="info-label">可用份额</text>
+        <text class="info-value">{{holding._available}}</text>
+      </view>
+      <view class="info-row flex justify-between">
+        <text class="info-label">冻结份额</text>
+        <text class="info-value">{{holding._frozen}}</text>
+      </view>
+      <view class="divider" />
+      <view class="info-row flex justify-between">
+        <text class="info-label">投入成本</text>
+        <text class="info-value">¥{{holding._totalCost}}</text>
+      </view>
+      <view class="info-row flex justify-between">
+        <text class="info-label">成本净值</text>
+        <text class="info-value">{{holding._costNav}}</text>
+      </view>
+      <view class="divider" />
+      <view class="info-row flex justify-between">
+        <text class="info-label">当前市值</text>
+        <text class="info-value {{holding._profitClass}}">¥{{holding._value}}</text>
+      </view>
+      <view class="info-row flex justify-between">
+        <text class="info-label">持仓盈亏</text>
+        <text class="info-value {{holding._totalProfitClass}}">{{holding._totalProfit}} ({{holding._profitRate}}%)</text>
+      </view>
+      <view class="info-row flex justify-between">
+        <text class="info-label">日盈亏</text>
+        <text class="info-value {{holding._profitClass}}">{{holding._profit}}</text>
+      </view>
+
+      <view class="text-center mt-md">
+        <button class="btn btn-ghost btn-sm" bindtap="toggleEdit">✏️ 手动编辑</button>
+      </view>
+    </view>
+
+    <!-- 编辑模式 -->
+    <view wx:else>
+      <view class="form-group">
+        <text class="form-label">持仓份额</text>
+        <input class="form-input" type="digit" value="{{form.total_shares}}"
+               data-field="total_shares" bindinput="onFormInput" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">可用份额</text>
+        <input class="form-input" type="digit" value="{{form.available_shares}}"
+               data-field="available_shares" bindinput="onFormInput" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">冻结份额</text>
+        <input class="form-input" type="digit" value="{{form.frozen_shares}}"
+               data-field="frozen_shares" bindinput="onFormInput" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">投入成本</text>
+        <input class="form-input" type="digit" value="{{form.total_cost}}"
+               data-field="total_cost" bindinput="onFormInput" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">成本净值</text>
+        <input class="form-input" type="digit" value="{{form.avg_cost_nav}}"
+               data-field="avg_cost_nav" bindinput="onFormInput" />
+      </view>
+
+      <view class="flex gap-sm mt-md">
+        <button class="btn btn-outline flex-1" bindtap="toggleEdit">取消</button>
+        <button class="btn btn-primary flex-1" bindtap="onSaveEdit" loading="{{submitting}}">保存修改</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 状态信息 -->
+  <view class="section-title">基本信息</view>
+  <view class="card">
+    <view class="info-row flex justify-between">
+      <text class="info-label">状态</text>
+      <text class="info-value">{{holding.status === 'holding' ? '持有中' : holding.status === 'partial_redeem' ? '部分赎回' : holding.status}}</text>
+    </view>
+    <view class="info-row flex justify-between">
+      <text class="info-label">首次买入</text>
+      <text class="info-value">{{holding.first_buy_date || '--'}}</text>
+    </view>
+    <view class="info-row flex justify-between">
+      <text class="info-label">最后更新</text>
+      <text class="info-value">{{holding.last_update || '--'}}</text>
+    </view>
+  </view>
+</view>

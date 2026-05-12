@@ -1,15 +1,19 @@
 """基金信息缓存表 + 净值历史表"""
 from datetime import datetime
-from sqlalchemy import String, Float, Integer, Text
+from sqlalchemy import String, Float, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
 
 
 class Fund(Base):
     __tablename__ = "funds"
+    __table_args__ = (
+        UniqueConstraint("user_id", "code", name="uq_user_fund_code"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    code: Mapped[str] = mapped_column(String(16), unique=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True, default=1)
+    code: Mapped[str] = mapped_column(String(16), nullable=False)
     name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
     fund_type: Mapped[str | None] = mapped_column(String(32), nullable=True)

@@ -3,16 +3,15 @@ Component({
     id: { type: Number, value: 0 },
     label: { type: String, value: '' },
     bank: { type: String, value: '' },
-    balance: { type: Number, value: 0 },
+    balanceText: { type: String, value: '0.00' },
+    pendingText: { type: String, value: '' },
     currency: { type: String, value: 'CNY' },
+    icon: { type: String, value: '💳' },
+    typeLabel: { type: String, value: '银行卡' },
   },
   methods: {
     onTap() {
       this.triggerEvent('tap', { id: this.properties.id })
-    },
-    fmt(v) {
-      if (v == null) return '0.00'
-      return Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     },
   },
 })

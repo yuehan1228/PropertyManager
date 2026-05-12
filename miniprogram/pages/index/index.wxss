@@ -53,6 +53,19 @@
   font-weight: 600;
   margin-top: 4rpx;
 }
+.header-pending {
+  border-top: 1rpx solid rgba(255,255,255,0.15);
+  padding-top: 16rpx;
+}
+.pending-label {
+  font-size: 24rpx;
+  opacity: 0.7;
+}
+.pending-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fbbf24;
+}
 .refresh-time {
   text-align: center;
   font-size: 22rpx;

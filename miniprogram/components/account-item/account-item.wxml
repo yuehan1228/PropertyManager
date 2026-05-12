@@ -1,13 +1,15 @@
 <view class="account-item card flex items-center justify-between" bindtap="onTap">
   <view class="flex items-center gap-sm">
-    <text class="account-icon">💳</text>
+    <text class="account-icon">{{icon || '💳'}}</text>
     <view>
       <view class="account-label">{{label}}</view>
       <view class="account-bank" wx:if="{{bank}}">{{bank}}</view>
+      <text class="account-type tag tag-sm {{icon === '📈' ? 'tag-blue' : 'tag-gray'}}">{{typeLabel}}</text>
     </view>
   </view>
   <view class="text-right">
-    <view class="account-balance">{{fmt(balance)}}</view>
+    <view class="account-balance">{{balanceText}}</view>
+    <view class="account-pending" wx:if="{{pendingText}}">待确认 {{pendingText}}</view>
     <view class="account-currency">{{currency}}</view>
   </view>
 </view>

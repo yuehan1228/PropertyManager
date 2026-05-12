@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 @router.post("/sync-calendar")
 def sync_calendar(year: int | None = None, db: Session = Depends(get_db)):
-    """手动同步交易日历"""
+    """手动同步交易日历（全局数据，无需用户隔离）"""
     if year is None:
         year = date.today().year
     svc = TradingCalendarService(db)

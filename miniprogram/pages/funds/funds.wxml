@@ -9,10 +9,10 @@
       wx:for="{{funds}}"
       wx:key="code"
       code="{{item.code}}"
-      name="{{item.name}}"
-      nav="{{item.nav}}"
-      change="{{item.daily_change}}"
-      navText="{{item.nav ? item.nav.toFixed(4) : '--'}}"
+      name="{{item.name || ''}}"
+      navText="{{item._navText}}"
+      changeText="{{item._changeText}}"
+      changeClass="{{item._changeClass}}"
       bindtap="goDetail"
     />
   </view>

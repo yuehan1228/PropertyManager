@@ -55,21 +55,23 @@ class SettlementService:
     # 每日批量确认
     # ----------------------------------------------------------------
 
-    def process_daily_confirmations(self, today: date) -> int:
+    def process_daily_confirmations(self, today: date, user_id: int | None = None) -> int:
         """
         处理所有今日到期的份额确认
         返回确认笔数
         """
         today_str = today.isoformat()
-        pending = (
+        q = (
             self.db.query(TransactionRecord)
             .filter(
                 TransactionRecord.confirm_date == today_str,
                 TransactionRecord.status == "pending",
                 TransactionRecord.trans_type.in_(["buy", "auto_buy"]),
             )
-            .all()
         )
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+        pending = q.all()
 
         for txn in pending:
             self._confirm_one(txn)
@@ -79,21 +81,23 @@ class SettlementService:
             logger.info(f"份额确认完成: {len(pending)}笔")
         return len(pending)
 
-    def process_daily_settlements(self, today: date) -> int:
+    def process_daily_settlements(self, today: date, user_id: int | None = None) -> int:
         """
         处理所有今日到账的赎回
         返回到账笔数
         """
         today_str = today.isoformat()
-        pending = (
+        q = (
             self.db.query(TransactionRecord)
             .filter(
                 TransactionRecord.settle_date == today_str,
                 TransactionRecord.status == "confirmed",
                 TransactionRecord.trans_type == "sell",
             )
-            .all()
         )
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+        pending = q.all()
 
         for txn in pending:
             self._settle_one(txn)
@@ -110,7 +114,7 @@ class SettlementService:
     def _confirm_one(self, txn: TransactionRecord):
         """确认单笔买入"""
         holding = self._get_or_create_holding(
-            txn.fund_code, txn.source_account_id
+            txn.fund_code, txn.source_account_id, txn.user_id
         )
         shares = txn.confirm_shares or txn.shares or 0
 
@@ -134,22 +138,32 @@ class SettlementService:
     def _settle_one(self, txn: TransactionRecord):
         """结算单笔赎回"""
         if txn.source_account_id:
-            account = self.db.query(SavingsAccount).get(txn.source_account_id)
+            account = (
+                self.db.query(SavingsAccount)
+                .filter_by(id=txn.source_account_id, user_id=txn.user_id)
+                .first()
+            )
             if account:
                 account.balance += txn.actual_amount or txn.amount
         txn.status = "settled"
 
     def _get_or_create_holding(self, fund_code: str,
-                                source_account_id: int | None) -> FundHolding:
+                                source_account_id: int | None,
+                                user_id: int | None = None) -> FundHolding:
         """获取或创建持仓记录"""
         holding = (
             self.db.query(FundHolding)
-            .filter_by(fund_code=fund_code, source_account_id=source_account_id)
+            .filter_by(fund_code=fund_code, source_account_id=source_account_id, user_id=user_id)
             .first()
         )
         if not holding:
-            fund = self.db.query(Fund).filter_by(code=fund_code).first()
+            fund = (
+                self.db.query(Fund)
+                .filter_by(code=fund_code, user_id=user_id)
+                .first()
+            )
             holding = FundHolding(
+                user_id=user_id or 1,
                 fund_code=fund_code,
                 fund_name=fund.name if fund else fund_code,
                 source_account_id=source_account_id,

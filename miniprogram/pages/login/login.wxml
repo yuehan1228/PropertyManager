@@ -1,0 +1,38 @@
+<!-- 登录页 -->
+<view class="page-login">
+  <!-- Logo / 图标区 -->
+  <view class="login-header">
+    <view class="login-icon">💹</view>
+    <view class="login-title">资产追踪</view>
+    <view class="login-desc">管理你的个人资产与基金投资</view>
+  </view>
+
+  <!-- 登录按钮 -->
+  <view class="login-body">
+    <button
+      class="login-btn primary-btn"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+      bindtap="handleLogin"
+    >
+      微信一键登录
+    </button>
+
+    <!-- 开发模式登录（仅开发版显示） -->
+    <button
+      class="login-btn dev-btn"
+      bindtap="handleDevLogin"
+    >
+      开发者测试登录
+    </button>
+
+    <!-- 错误提示 -->
+    <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
+
+    <!-- 说明 -->
+    <view class="login-tips">
+      <text>登录后将自动为你创建专属账户</text>
+      <text>所有数据仅你可见</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,53 @@
+.detail-header {
+  margin: 24rpx;
+}
+.header-name {
+  font-size: 34rpx;
+  font-weight: 700;
+}
+.header-code {
+  font-size: 24rpx;
+  color: #9ca3af;
+  margin-top: 4rpx;
+}
+.header-value {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+.action-bar {
+  margin: 0 8rpx;
+}
+.section-title {
+  margin: 24rpx 24rpx 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #374151;
+}
+.info-row {
+  padding: 14rpx 0;
+}
+.info-label {
+  font-size: 26rpx;
+  color: #6b7280;
+}
+.info-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+.form-group {
+  margin-bottom: 20rpx;
+}
+.form-label {
+  display: block;
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-bottom: 6rpx;
+}
+.form-input {
+  height: 72rpx;
+  background: #f5f6fa;
+  border-radius: 10rpx;
+  padding: 0 16rpx;
+  font-size: 28rpx;
+}

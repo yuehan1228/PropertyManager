@@ -1,10 +1,12 @@
 {
   "pages": [
+    "pages/login/login",
     "pages/index/index",
     "pages/accounts/accounts",
     "pages/funds/funds",
     "pages/funds/detail",
     "pages/holdings/holdings",
+    "pages/holdings/detail",
     "pages/plans/plans",
     "pages/plans/form",
     "pages/transactions/transactions",

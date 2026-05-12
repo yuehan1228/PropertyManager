@@ -7,17 +7,15 @@
         <view class="fund-code">{{fund.code}}</view>
       </view>
       <view class="text-right">
-        <view class="fund-nav-value">{{fmtNav(fund.nav)}}</view>
-        <view class="{{fund.daily_change >= 0 ? 'amount-up' : 'amount-down'}}">
-          {{fmtChange(fund.daily_change)}}%
-        </view>
+        <view class="fund-nav-value">{{fund._nav}}</view>
+        <view class="{{fund._changeClass}}">{{fund._change}}%</view>
       </view>
     </view>
     <view class="divider" />
     <view class="flex justify-between">
       <view class="info-item">
         <text class="info-label">类型</text>
-        <text class="info-value">{{typeLabel(fund.fund_type)}}</text>
+        <text class="info-value">{{fund._type}}</text>
       </view>
       <view class="info-item">
         <text class="info-label">确认周期</text>
@@ -32,7 +30,7 @@
     <view class="flex justify-between" wx:if="{{fund.acc_nav}}">
       <view class="info-item">
         <text class="info-label">累计净值</text>
-        <text class="info-value">{{fmtNav(fund.acc_nav)}}</text>
+        <text class="info-value">{{fund._accNav}}</text>
       </view>
       <view class="info-item">
         <text class="info-label">净值日期</text>
@@ -52,10 +50,8 @@
     <view wx:if="{{navHistory.length > 0}}">
       <view class="nav-row flex justify-between" wx:for="{{navHistory}}" wx:key="nav_date">
         <text>{{item.nav_date}}</text>
-        <text class="font-mono">{{fmtNav(item.unit_nav)}}</text>
-        <text class="{{item.daily_change >= 0 ? 'amount-up' : 'amount-down'}}">
-          {{item.daily_change !== null ? fmtChange(item.daily_change) + '%' : '--'}}
-        </text>
+        <text class="font-mono">{{item._nav}}</text>
+        <text class="{{item._changeClass}}">{{item._change}}%</text>
       </view>
     </view>
     <empty-state wx:else message="暂未获取净值历史" />

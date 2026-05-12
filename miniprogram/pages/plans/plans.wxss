@@ -44,3 +44,25 @@
   color: #9ca3af;
   margin-top: 8rpx;
 }
+/* 持仓信息行 */
+.plan-hold-row {
+  background: #f8fafc;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+}
+.hold-item {
+  flex: 1;
+}
+.hold-label {
+  display: block;
+  font-size: 22rpx;
+  color: #9ca3af;
+  margin-bottom: 4rpx;
+}
+.hold-value {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.plan-pending {
+  margin-top: 6rpx;
+}

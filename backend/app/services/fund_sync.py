@@ -27,13 +27,16 @@ class FundDataSyncService:
     # 基金基本信息
     # ----------------------------------------------------------------
 
-    def sync_fund_info(self, code: str) -> Fund | None:
+    def sync_fund_info(self, code: str, user_id: int | None = None) -> Fund | None:
         """拉取并缓存基金基本信息"""
         import httpx
 
-        fund = self.db.query(Fund).filter_by(code=code).first()
+        q = self.db.query(Fund).filter_by(code=code)
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+        fund = q.first()
         if fund is None:
-            fund = Fund(code=code)
+            fund = Fund(code=code, user_id=user_id or 1)
             self.db.add(fund)
 
         try:
@@ -69,12 +72,15 @@ class FundDataSyncService:
     # 实时估值
     # ----------------------------------------------------------------
 
-    def sync_fund_estimate(self, code: str) -> dict:
+    def sync_fund_estimate(self, code: str, user_id: int | None = None) -> dict:
         """拉取盘中实时估值"""
         import httpx
 
         result = {"nav": None, "estimate_nav": None, "daily_change": 0.0}
-        fund = self.db.query(Fund).filter_by(code=code).first()
+        q = self.db.query(Fund).filter_by(code=code)
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+        fund = q.first()
         if not fund:
             return result
 
@@ -105,12 +111,15 @@ class FundDataSyncService:
     # 历史净值 (最新一条)
     # ----------------------------------------------------------------
 
-    def sync_latest_nav(self, code: str) -> dict:
+    def sync_latest_nav(self, code: str, user_id: int | None = None) -> dict:
         """拉取最新单位净值（收盘后）"""
         import httpx
 
         result = {"nav": None, "nav_date": None, "acc_nav": None, "daily_change": 0.0}
-        fund = self.db.query(Fund).filter_by(code=code).first()
+        q = self.db.query(Fund).filter_by(code=code)
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+        fund = q.first()
         if not fund:
             logger.warning(f"基金 {code} 未录入，跳过净值同步")
             return result
@@ -191,26 +200,31 @@ class FundDataSyncService:
     # 批量同步
     # ----------------------------------------------------------------
 
-    def sync_all_held_funds(self, today: date) -> dict:
+    def sync_all_held_funds(self, today: date, user_id: int | None = None) -> dict:
         """同步所有持仓基金的净值，返回摘要"""
         from app.models.holding import FundHolding
 
-        holdings = (
+        hold_q = (
             self.db.query(FundHolding)
             .filter(FundHolding.status.in_(["holding", "partial_redeem"]))
-            .all()
         )
+        if user_id is not None:
+            hold_q = hold_q.filter_by(user_id=user_id)
+        holdings = hold_q.all()
         codes = list(set(h.fund_code for h in holdings))
 
         # 也同步 active 基金（即使暂未持仓）
-        active_funds = self.db.query(Fund).filter_by(is_active=1).all()
+        fund_q = self.db.query(Fund).filter_by(is_active=1)
+        if user_id is not None:
+            fund_q = fund_q.filter_by(user_id=user_id)
+        active_funds = fund_q.all()
         for f in active_funds:
             if f.code not in codes:
                 codes.append(f.code)
 
         summary = {"total": len(codes), "success": 0, "failed": 0}
         for code in codes:
-            result = self.sync_latest_nav(code)
+            result = self.sync_latest_nav(code, user_id=user_id)
             if result["nav"] is not None:
                 summary["success"] += 1
             else:
@@ -223,9 +237,12 @@ class FundDataSyncService:
     # 净值已是否公布
     # ----------------------------------------------------------------
 
-    def is_nav_published(self, code: str, target_date: date) -> bool:
+    def is_nav_published(self, code: str, target_date: date, user_id: int | None = None) -> bool:
         """检查指定日期净值是否已公布"""
-        fund = self.db.query(Fund).filter_by(code=code).first()
+        q = self.db.query(Fund).filter_by(code=code)
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+        fund = q.first()
         if not fund:
             return False
         return fund.nav_date == target_date.isoformat()

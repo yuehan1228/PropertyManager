@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     # 业务参数
     order_cutoff_time: str = "15:00"  # 当日下单截止时间
 
+    # 认证
+    jwt_secret: str = "change-me-in-production-please-32chars!"
+    dev_mode: bool = True              # 开发模式：Web 前端可免 token 访问
+    wechat_appid: str = ""             # 微信小程序 AppID
+    wechat_secret: str = ""            # 微信小程序 AppSecret
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

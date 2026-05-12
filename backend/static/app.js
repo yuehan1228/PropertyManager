@@ -10,11 +10,11 @@ const API = '/api'
 const $ = (sel, ctx = document) => ctx.querySelector(sel)
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)]
 const fmt = (v, d = 2) => {
-  if (v == null || isNaN(v)) return '--'
+  if (v == null || (typeof v === 'number' && isNaN(v))) return '0' + (d > 0 ? '.' + '0'.repeat(d) : '')
   return Number(v).toLocaleString('zh-CN', { minimumFractionDigits: d, maximumFractionDigits: d })
 }
 const fmtPct = (v) => {
-  if (v == null || isNaN(v)) return '--'
+  if (v == null || (typeof v === 'number' && isNaN(v))) return '0.00%'
   return (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%'
 }
 const sign = (v) => v >= 0 ? '+' : ''
@@ -48,11 +48,43 @@ const h = (tag, attrs = {}, ...children) => {
 }
 
 // =========================================================================
+// Auth Helper —— 开发模式下自动获取 token
+// =========================================================================
+let _authToken = localStorage.getItem('auth_token') || ''
+
+function getAuthHeaders() {
+  const h = { 'Content-Type': 'application/json' }
+  if (_authToken) {
+    h['Authorization'] = 'Bearer ' + _authToken
+  }
+  return h
+}
+
+async function ensureDevLogin() {
+  if (_authToken) return
+  try {
+    const res = await fetch(API + '/auth/dev-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ openid: 'web_dev_user' }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      _authToken = data.token
+      localStorage.setItem('auth_token', data.token)
+    }
+  } catch (e) {
+    console.warn('Dev login failed, relying on dev_mode server setting:', e)
+  }
+}
+
+// =========================================================================
 // API 层
 // =========================================================================
 async function api(path, opts = {}) {
   const { method = 'GET', body } = opts
-  const headers = { 'Content-Type': 'application/json' }
+  await ensureDevLogin()
+  const headers = getAuthHeaders()
   const res = await fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }))
@@ -156,6 +188,12 @@ function renderDashboard(app) {
           h('span', { class: 'hero-split-value' }, fmt(d.total_fund_value)),
         ),
       ),
+      d.total_pending > 0 ? h('div', { class: 'hero-split', style: { marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '6px' } },
+        h('div', { class: 'hero-split-item', onClick: () => setPage('accounts') },
+          h('span', { class: 'hero-split-label' }, '⏳ 待确认金额'),
+          h('span', { class: 'hero-split-value', style: { color: '#fbbf24' } }, fmt(d.total_pending)),
+        ),
+      ) : null,
       h('div', { class: 'refresh-time' }, '点击标签栏刷新'),
     )
   )
@@ -378,7 +416,7 @@ function renderAccounts(app) {
     list.appendChild(
       h('div', { class: 'card list-row', onClick: () => openModal('accountForm', a) },
         h('div', { class: 'list-row-left' },
-          h('span', { class: 'list-row-icon' }, '💳'),
+          h('span', { class: 'list-row-icon' }, a.account_type === 'fund' ? '📈' : '💳'),
           h('div', {},
             h('div', { class: 'list-row-title' }, a.label),
             a.bank_name ? h('div', { class: 'list-row-sub' }, a.bank_name) : null,
@@ -386,6 +424,9 @@ function renderAccounts(app) {
         ),
         h('div', { class: 'text-right' },
           h('div', { class: 'list-row-value' }, fmt(a.balance)),
+          a.account_type === 'fund' && a.pending_amount > 0
+            ? h('div', { style: 'font-size:12px;color:#f59e0b;margin-top:2px' }, '待确认 ' + fmt(a.pending_amount))
+            : null,
           h('div', { class: 'list-row-sub' }, a.currency),
         ),
       )
@@ -578,6 +619,7 @@ function renderModalAccountForm(data) {
     label: data?.label || '',
     bank_name: data?.bank_name || '',
     balance: data?.balance ?? '',
+    pending_amount: data?.pending_amount ?? '',
     remark: data?.remark || '',
   }
   const inputs = {}
@@ -585,6 +627,7 @@ function renderModalAccountForm(data) {
     , h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, '标识 *'), inputs.label = h('input', { class: 'form-input', value: fields.label, placeholder: '如：招行工资卡' }))
     , h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, '银行名称'), inputs.bank = h('input', { class: 'form-input', value: fields.bank_name, placeholder: '如：招商银行' }))
     , h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, '当前余额'), inputs.balance = h('input', { class: 'form-input', type: 'number', value: fields.balance, placeholder: '0.00' }))
+    , h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, '待确认金额'), inputs.pending_amount = h('input', { class: 'form-input', type: 'number', value: fields.pending_amount, placeholder: '0.00' }))
     , h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, '备注'), inputs.remark = h('input', { class: 'form-input', value: fields.remark, placeholder: '可选' }))
     , h('div', { class: 'flex gap-sm mt-md' },
       h('button', { class: 'btn btn-outline flex-1', onClick: closeModal }, '取消'),
@@ -595,6 +638,7 @@ function renderModalAccountForm(data) {
             label: inputs.label.value.trim(),
             bank_name: inputs.bank.value.trim() || null,
             balance: parseFloat(inputs.balance.value) || 0,
+            pending_amount: parseFloat(inputs.pending_amount.value) || 0,
             remark: inputs.remark.value.trim() || null,
           }
           if (!body.label) { toast('请输入账户标识', 'error'); return }

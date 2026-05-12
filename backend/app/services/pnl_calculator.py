@@ -1,4 +1,4 @@
-"""盈亏计算服务"""
+"""盈亏计算服务 —— 支持按用户隔离"""
 import json
 import logging
 from datetime import date, timedelta
@@ -17,41 +17,42 @@ class PnLCalculator:
     def __init__(self, db: Session):
         self.db = db
 
-    def calculate_daily_pnl(self, today: date) -> dict:
+    def calculate_daily_pnl(self, today: date, user_id: int | None = None) -> dict:
         """
         计算所有持仓的当日盈亏
         返回: {total_fund_value, daily_fund_profit, profit_summary_by_holding}
         """
-        holdings = (
+        q = (
             self.db.query(FundHolding)
             .filter(FundHolding.status.in_(["holding", "partial_redeem"]))
-            .all()
         )
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+        holdings = q.all()
 
         total_value = 0.0
         daily_profit = 0.0
 
         for h in holdings:
-            fund = self.db.query(Fund).filter_by(code=h.fund_code).first()
+            fund_q = self.db.query(Fund).filter_by(code=h.fund_code)
+            if user_id is not None:
+                fund_q = fund_q.filter_by(user_id=user_id)
+            fund = fund_q.first()
             if not fund or not fund.nav:
                 continue
 
-            # 昨日市值 = total_shares * 昨日净值
             yesterday_nav = self._get_yesterday_nav(fund, today)
             yesterday_value = h.total_shares * yesterday_nav
 
-            # 今日市值
             today_value = h.total_shares * fund.nav
             today_profit = today_value - yesterday_value
             today_rate = (today_profit / yesterday_value * 100) if yesterday_value > 0 else 0.0
 
-            # 更新持仓
             h.current_value = today_value
             h.daily_profit = round(today_profit, 2)
             h.daily_profit_rate = round(today_rate, 4)
             h.last_update = today.isoformat()
 
-            # 更新累计
             h.total_profit = h.current_value - h.total_cost
             h.profit_rate = (
                 (h.total_profit / h.total_cost * 100) if h.total_cost > 0 else 0.0
@@ -62,6 +63,9 @@ class PnLCalculator:
 
         self.db.commit()
 
+        # 同步基金账户余额
+        self._sync_fund_accounts(user_id)
+
         result = {
             "total_fund_value": round(total_value, 2),
             "daily_fund_profit": round(daily_profit, 2),
@@ -69,8 +73,32 @@ class PnLCalculator:
         logger.info(f"盈亏计算完成: 总市值={total_value:.2f} 日盈亏={daily_profit:.2f}")
         return result
 
+    def _sync_fund_accounts(self, user_id: int | None):
+        """将持仓市值同步到对应基金账户的 balance"""
+        from app.models.account import SavingsAccount
+        from app.models.holding import FundHolding
+
+        fund_accounts = (
+            self.db.query(SavingsAccount)
+            .filter_by(account_type="fund", is_active=1)
+        )
+        if user_id is not None:
+            fund_accounts = fund_accounts.filter_by(user_id=user_id)
+        fund_accounts = fund_accounts.all()
+
+        for acct in fund_accounts:
+            if not acct.fund_code:
+                continue
+            holding = (
+                self.db.query(FundHolding)
+                .filter_by(fund_code=acct.fund_code, user_id=acct.user_id)
+                .first()
+            )
+            if holding:
+                acct.balance = round(holding.current_value, 2)
+        self.db.commit()
+
     def _get_yesterday_nav(self, fund: Fund, today: date) -> float:
-        """获取昨日净值（优先查本地历史表）"""
         from app.models.fund import FundNavHistory
 
         yesterday = (today - timedelta(days=1)).isoformat()
@@ -82,7 +110,6 @@ class PnLCalculator:
         if row:
             return row.unit_nav
 
-        # Fallback: 上一条历史记录
         row = (
             self.db.query(FundNavHistory)
             .filter(FundNavHistory.fund_code == fund.code)
@@ -92,7 +119,6 @@ class PnLCalculator:
         if row:
             return row.unit_nav
 
-        # 最后 fallback: 基金表缓存的净值（同一天，涨跌幅为0）
         return fund.nav or 0.0
 
 
@@ -102,36 +128,38 @@ class SnapshotService:
     def __init__(self, db: Session):
         self.db = db
 
-    def take_snapshot(self, today: date, is_trade_day: bool) -> DailyAssetSnapshot:
+    def take_snapshot(self, today: date, is_trade_day: bool, user_id: int | None = None) -> DailyAssetSnapshot:
         """拍摄当日资产快照"""
         today_str = today.isoformat()
 
-        # 汇总储蓄卡余额
-        accounts = self.db.query(SavingsAccount).filter_by(is_active=1).all()
+        acct_q = self.db.query(SavingsAccount).filter_by(is_active=1)
+        if user_id is not None:
+            acct_q = acct_q.filter_by(user_id=user_id)
+        accounts = acct_q.all()
         total_savings = sum(a.balance for a in accounts)
 
-        # 汇总基金市值
-        holdings = (
+        hold_q = (
             self.db.query(FundHolding)
             .filter(FundHolding.status.in_(["holding", "partial_redeem"]))
-            .all()
         )
+        if user_id is not None:
+            hold_q = hold_q.filter_by(user_id=user_id)
+        holdings = hold_q.all()
         total_fund_value = sum(h.current_value for h in holdings)
         total_assets = total_savings + total_fund_value
         daily_profit = sum(h.daily_profit for h in holdings)
 
-        # 累计盈亏
         cumulative_profit = sum(h.total_profit for h in holdings)
         total_cost = sum(h.total_cost for h in holdings)
         cumulative_rate = (
             (cumulative_profit / total_cost * 100) if total_cost > 0 else 0.0
         )
 
-        # 总资产收益率
+        snap_q = self.db.query(DailyAssetSnapshot)
+        if user_id is not None:
+            snap_q = snap_q.filter_by(user_id=user_id)
         prev_snapshot = (
-            self.db.query(DailyAssetSnapshot)
-            .order_by(DailyAssetSnapshot.snapshot_date.desc())
-            .first()
+            snap_q.order_by(DailyAssetSnapshot.snapshot_date.desc()).first()
         )
         daily_profit_rate = 0.0
         if prev_snapshot and prev_snapshot.total_assets > 0:
@@ -141,7 +169,6 @@ class SnapshotService:
                 * 100
             )
 
-        # 持仓明细 JSON
         detail = []
         for h in holdings:
             detail.append({
@@ -153,6 +180,7 @@ class SnapshotService:
             })
 
         snapshot = DailyAssetSnapshot(
+            user_id=user_id or 1,
             snapshot_date=today_str,
             is_trade_day=1 if is_trade_day else 0,
             total_savings=round(total_savings, 2),
@@ -165,9 +193,11 @@ class SnapshotService:
             detail_json=json.dumps(detail, ensure_ascii=False),
         )
 
-        existing = self.db.query(DailyAssetSnapshot).filter_by(snapshot_date=today_str).first()
+        existing_q = self.db.query(DailyAssetSnapshot).filter_by(snapshot_date=today_str)
+        if user_id is not None:
+            existing_q = existing_q.filter_by(user_id=user_id)
+        existing = existing_q.first()
         if existing:
-            # 更新已有快照
             for key, value in snapshot.__dict__.items():
                 if not key.startswith("_") and key != "id":
                     setattr(existing, key, value)

@@ -1,17 +1,45 @@
 <view class="page-plan-form">
   <view class="form-section card">
-    <view class="form-group">
-      <text class="form-label">计划名称 *</text>
-      <input class="form-input" placeholder="如：每月工资定投" value="{{form.plan_name}}"
-             data-field="plan_name" bindinput="onInput" />
-    </view>
-
     <!-- 目标基金 picker -->
     <view class="form-group">
       <text class="form-label">目标基金 *</text>
       <picker mode="selector" range="{{funds}}" range-key="name" bindchange="onFundPickerChange">
         <view class="picker-value">{{selectedFundDisplay}}</view>
       </picker>
+    </view>
+
+    <!-- 基金持仓概览（选基金后显示） -->
+    <view class="fund-summary" wx:if="{{fundSummary}}">
+      <view class="summary-title">📊 当前持仓情况</view>
+
+      <view wx:if="{{fundSummary.hasHold}}">
+        <view class="summary-row flex justify-between">
+          <text class="summary-label">已投入金额</text>
+          <text class="summary-value">¥{{fundSummary.totalCost}}</text>
+        </view>
+        <view class="summary-row flex justify-between">
+          <text class="summary-label">当前市值</text>
+          <text class="summary-value {{fundSummary.profitClass}}">¥{{fundSummary.currentValue}}</text>
+        </view>
+        <view class="summary-row flex justify-between">
+          <text class="summary-label">持仓份额</text>
+          <text class="summary-value">{{fundSummary.totalShares}}</text>
+        </view>
+        <view class="summary-row flex justify-between">
+          <text class="summary-label">持仓盈亏</text>
+          <text class="summary-value {{fundSummary.profitClass}}">
+            ¥{{fundSummary.dailyProfit}} ({{fundSummary.profitRate}}%)
+          </text>
+        </view>
+      </view>
+      <view wx:else class="summary-empty">
+        <text class="amount-neutral">暂未持有该基金</text>
+      </view>
+
+      <view class="summary-row flex justify-between" wx:if="{{fundSummary.hasPending}}">
+        <text class="summary-label">⏳ 待确认金额</text>
+        <text class="summary-value tag tag-yellow">¥{{fundSummary.pendingAmt}}</text>
+      </view>
     </view>
 
     <!-- 扣款账户 picker -->
@@ -40,7 +68,6 @@
       </label>
     </radio-group>
 
-    <!-- 每月执行日 picker -->
     <view class="form-group" wx:if="{{form.frequency === 'monthly'}}">
       <text class="form-label">每月执行日</text>
       <picker mode="selector" range="{{dayOptions}}" bindchange="onDayPickerChange">

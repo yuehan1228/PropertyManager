@@ -1,11 +1,10 @@
-import { listFunds, listAccounts, createPlan, updatePlan } from '../../services/api'
+import { listFunds, listAccounts, listHoldings, listTransactions, createPlan, updatePlan } from '../../services/api'
 
 Page({
   data: {
     editId: null,
     funds: [],
     accounts: [],
-    // 预计算数组（WXML 不支持内联数组）
     freqOptions: [
       { value: 'monthly', label: '每月' },
       { value: 'biweekly', label: '每两周' },
@@ -13,9 +12,7 @@ Page({
       { value: 'daily', label: '每日' },
     ],
     dayOptions: [1, 5, 10, 15, 20, 25, 28],
-    // 表单
     form: {
-      plan_name: '',
       fund_code: '',
       from_account_id: '',
       amount: '',
@@ -25,9 +22,10 @@ Page({
       start_date: '',
       remark: '',
     },
-    // WXML 展示用的预计算文本
     selectedFundDisplay: '请选择基金',
     selectedAccountDisplay: '请选择账户',
+    // 选中基金的持仓概览
+    fundSummary: null, // { totalCost, currentValue, totalShares, pendingAmt }
     submitting: false,
   },
 
@@ -42,31 +40,62 @@ Page({
 
   async loadOptions() {
     try {
-      const [funds, accounts] = await Promise.all([
+      const [funds, allAccounts] = await Promise.all([
         listFunds(1),
         listAccounts(),
       ])
+      // 定投扣款仅限银行卡
+      const accounts = allAccounts.filter(a => a.account_type !== 'fund')
       this.setData({ funds, accounts })
-    } catch (e) {
-      // handled by api layer
-    }
+    } catch (e) { /* handled */ }
   },
 
-  // ---------- 输入事件 ----------
   onInput(e) {
     const field = e.currentTarget.dataset.field
     this.setData({ [`form.${field}`]: e.detail.value })
   },
 
-  // ---------- picker 选择 ----------
-  onFundPickerChange(e) {
+  async onFundPickerChange(e) {
     const idx = e.detail.value
     const fund = this.data.funds[idx]
     if (fund) {
       this.setData({
         'form.fund_code': fund.code,
         selectedFundDisplay: fund.code + ' ' + (fund.name || ''),
+        fundSummary: null,
       })
+      // 异步加载该基金的持仓和待确认信息
+      this._loadFundSummary(fund.code)
+    }
+  },
+
+  async _loadFundSummary(code) {
+    try {
+      const [holdings, pendingTxns] = await Promise.all([
+        listHoldings(),
+        listTransactions({ status: 'pending', limit: 200 }),
+      ])
+      const holding = holdings.find(h => h.fund_code === code)
+      const pendingTotal = pendingTxns
+        .filter(t => t.fund_code === code)
+        .reduce((sum, t) => sum + (t.amount || 0), 0)
+
+      const profit = holding ? (holding.daily_profit || 0) : 0
+      this.setData({
+        fundSummary: {
+          totalCost: holding ? this._fmt(holding.total_cost) : null,
+          currentValue: holding ? this._fmt(holding.current_value) : null,
+          totalShares: holding ? Number(holding.total_shares || 0).toFixed(2) : null,
+          dailyProfit: holding ? this._fmt(holding.daily_profit) : null,
+          profitRate: holding ? Number(holding.profit_rate || 0).toFixed(2) : null,
+          profitClass: profit >= 0 ? 'amount-up' : 'amount-down',
+          pendingAmt: pendingTotal > 0 ? this._fmt(pendingTotal) : null,
+          hasHold: !!holding,
+          hasPending: pendingTotal > 0,
+        },
+      })
+    } catch (e) {
+      console.error('加载基金摘要失败:', e)
     }
   },
 
@@ -76,7 +105,7 @@ Page({
     if (account) {
       this.setData({
         'form.from_account_id': account.id,
-        selectedAccountDisplay: account.label,
+        selectedAccountDisplay: account.label + ' (¥' + this._fmt(account.balance) + ')',
       })
     }
   },
@@ -90,18 +119,20 @@ Page({
     this.setData({ 'form.frequency': e.detail.value })
   },
 
-  // ---------- 提交 ----------
   async onSubmit() {
     const { form, editId } = this.data
-    if (!form.plan_name.trim() || !form.fund_code || !form.from_account_id || !form.amount) {
+    if (!form.fund_code || !form.from_account_id || !form.amount) {
       wx.showToast({ title: '请完善必填项', icon: 'none' })
       return
     }
 
     this.setData({ submitting: true })
     try {
+      const freqLabel = this.data.freqOptions.find(o => o.value === form.frequency)?.label || form.frequency
+      const planName = form.fund_code + '-' + freqLabel
+
       const payload = {
-        plan_name: form.plan_name,
+        plan_name: planName,
         fund_code: form.fund_code,
         from_account_id: Number(form.from_account_id),
         amount: parseFloat(form.amount),
@@ -123,7 +154,10 @@ Page({
     }
   },
 
-  // ---------- 工具 ----------
+  _fmt(v) {
+    if (v == null || (typeof v === 'number' && isNaN(v))) return '0.00'
+    return Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  },
   _fmtDate(d) {
     const y = d.getFullYear()
     const m = String(d.getMonth() + 1).padStart(2, '0')

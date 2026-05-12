@@ -1,7 +1,7 @@
 <view class="page-accounts">
   <view class="page-header flex justify-between items-center p-md">
     <text class="page-title">账户管理</text>
-    <button class="btn btn-primary btn-sm" bindtap="onAdd">+ 添加账户</button>
+    <button class="btn btn-primary btn-sm" catchtap="onAdd">+ 添加账户</button>
   </view>
 
   <view wx:if="{{accounts.length > 0}}">
@@ -11,32 +11,68 @@
       id="{{item.id}}"
       label="{{item.label}}"
       bank="{{item.bank_name}}"
-      balance="{{item.balance}}"
+      balanceText="{{item._balance}}"
+      pendingText="{{item._pending}}"
+      icon="{{item._icon}}"
+      typeLabel="{{item._typeLabel}}"
       bindtap="onEdit"
     />
   </view>
-  <empty-state wx:else message="暂无账户" tip="添加储蓄卡开始追踪资产" />
+  <empty-state wx:else message="暂无账户" tip="添加银行卡或基金账户开始管理资产" />
 
-  <!-- 编辑表单弹层 -->
+  <!-- 表单弹层 -->
   <view class="modal-overlay" wx:if="{{showForm}}" bindtap="onCloseForm">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="noop">
       <view class="modal-title">{{editingAccount ? '编辑账户' : '添加账户'}}</view>
 
+      <!-- 类型切换 -->
+      <view class="type-switch flex mb-md">
+        <view class="type-tab {{form.account_type === 'bank' ? 'active' : ''}}"
+              data-type="bank" bindtap="onTypeChange">💳 银行卡</view>
+        <view class="type-tab {{form.account_type === 'fund' ? 'active' : ''}}"
+              data-type="fund" bindtap="onTypeChange">📈 基金账户</view>
+      </view>
+
       <view class="form-group">
-        <text class="form-label">标识 *</text>
-        <input class="form-input" placeholder="如：招行工资卡" value="{{form.label}}"
+        <text class="form-label">名称 *</text>
+        <input class="form-input" placeholder="如：招行工资卡 / 纳指定投" value="{{form.label}}"
                data-field="label" bindinput="onFormInput" />
       </view>
-      <view class="form-group">
-        <text class="form-label">银行名称</text>
-        <input class="form-input" placeholder="如：招商银行" value="{{form.bank_name}}"
-               data-field="bank_name" bindinput="onFormInput" />
-      </view>
-      <view class="form-group">
-        <text class="form-label">当前余额</text>
-        <input class="form-input" type="digit" placeholder="0.00" value="{{form.balance}}"
-               data-field="balance" bindinput="onFormInput" />
-      </view>
+
+      <!-- 银行卡字段 -->
+      <block wx:if="{{form.account_type === 'bank'}}">
+        <view class="form-group">
+          <text class="form-label">银行名称</text>
+          <input class="form-input" placeholder="如：招商银行" value="{{form.bank_name}}"
+                 data-field="bank_name" bindinput="onFormInput" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">当前余额</text>
+          <input class="form-input" type="digit" placeholder="0.00" value="{{form.balance}}"
+                 data-field="balance" bindinput="onFormInput" />
+        </view>
+      </block>
+
+      <!-- 基金账户字段 -->
+      <block wx:if="{{form.account_type === 'fund'}}">
+        <view class="form-group">
+          <text class="form-label">关联基金 *</text>
+          <picker mode="selector" range="{{funds}}" range-key="name" bindchange="onFundPickerChange">
+            <view class="picker-value">{{selectedFundDisplay}}</view>
+          </picker>
+        </view>
+        <view class="form-group">
+          <text class="form-label">当前持有金额（估值）</text>
+          <input class="form-input" type="digit" placeholder="0.00" value="{{form.balance}}"
+                 data-field="balance" bindinput="onFormInput" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">待确认金额</text>
+          <input class="form-input" type="digit" placeholder="如已申购但未确认的金额" value="{{form.pending_amount}}"
+                 data-field="pending_amount" bindinput="onFormInput" />
+        </view>
+      </block>
+
       <view class="form-group">
         <text class="form-label">备注</text>
         <input class="form-input" placeholder="可选" value="{{form.remark}}"
@@ -45,7 +81,7 @@
 
       <view class="form-actions flex justify-between gap-sm">
         <button class="btn btn-outline flex-1" bindtap="onCloseForm">取消</button>
-        <button class="btn btn-primary flex-1" bindtap="onFormSubmit">保存</button>
+        <button class="btn btn-primary flex-1" bindtap="onFormSubmit" loading="{{submitting}}">保存</button>
       </view>
       <view class="text-center mt-sm" wx:if="{{editingAccount}}">
         <text class="btn btn-ghost btn-sm" bindtap="onDelete" style="color:#ef4444;">删除账户</text>

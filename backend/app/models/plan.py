@@ -9,6 +9,7 @@ class InvestmentPlan(Base):
     __tablename__ = "investment_plans"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True, default=1)
     plan_name: Mapped[str] = mapped_column(String(128), nullable=False)
     fund_code: Mapped[str] = mapped_column(String(16), nullable=False)
     from_account_id: Mapped[int] = mapped_column(Integer, nullable=False)

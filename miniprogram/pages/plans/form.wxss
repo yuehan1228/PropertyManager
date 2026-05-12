@@ -36,3 +36,35 @@
 .form-actions {
   padding-top: 24rpx;
 }
+/* 基金持仓概览 */
+.fund-summary {
+  background: #f0f9ff;
+  border: 1rpx solid #bae6fd;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-top: 8rpx;
+  margin-bottom: 24rpx;
+}
+.summary-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 16rpx;
+}
+.summary-row {
+  padding: 8rpx 0;
+}
+.summary-label {
+  font-size: 24rpx;
+  color: #6b7280;
+}
+.summary-value {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+.summary-empty {
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 24rpx;
+}

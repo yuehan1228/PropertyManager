@@ -9,7 +9,8 @@ class DailyAssetSnapshot(Base):
     __tablename__ = "daily_asset_snapshots"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    snapshot_date: Mapped[str] = mapped_column(String(16), unique=True, nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True, default=1)
+    snapshot_date: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
     is_trade_day: Mapped[int] = mapped_column(Integer, default=1)
     total_savings: Mapped[float] = mapped_column(Float, default=0.0)
     total_fund_value: Mapped[float] = mapped_column(Float, default=0.0)

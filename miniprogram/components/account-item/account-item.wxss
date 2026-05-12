@@ -17,6 +17,11 @@
   font-size: 30rpx;
   font-weight: 600;
 }
+.account-pending {
+  font-size: 22rpx;
+  color: #f59e0b;
+  margin-top: 2rpx;
+}
 .account-currency {
   font-size: 22rpx;
   color: #9ca3af;

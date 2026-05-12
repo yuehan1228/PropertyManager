@@ -1,19 +1,30 @@
-/** API 服务层 —— 封装后端所有接口 */
+/** API 服务层 —— 封装后端所有接口，自动携带 Auth Token */
 const app = getApp()
 
 function baseUrl() {
   return app.globalData.baseUrl
 }
 
+/** 获取存储的 token */
+function getToken() {
+  return app.globalData.token || wx.getStorageSync('token') || ''
+}
+
 function request(path, options = {}) {
-  const { method = 'GET', data, silent = false } = options
+  const { method = 'GET', data, silent = false, timeout = 20000 } = options
+  const headers = { 'Content-Type': 'application/json' }
+  const token = getToken()
+  if (token) {
+    headers['Authorization'] = 'Bearer ' + token
+  }
   return new Promise((resolve, reject) => {
     if (!silent) wx.showLoading({ title: '加载中...', mask: true })
     wx.request({
       url: baseUrl() + path,
       method,
       data,
-      header: { 'Content-Type': 'application/json' },
+      timeout,
+      header: headers,
       success(res) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res.data)
@@ -32,6 +43,21 @@ function request(path, options = {}) {
       },
     })
   })
+}
+
+// ----------------------------------------------------------------
+// 认证
+// ----------------------------------------------------------------
+export function login(code) {
+  return request('/api/auth/login', { method: 'POST', data: { code }, silent: true, timeout: 30000 })
+}
+
+export function devLogin(openid) {
+  return request('/api/auth/dev-login', { method: 'POST', data: { openid }, silent: true, timeout: 30000 })
+}
+
+export function getMe() {
+  return request('/api/auth/me')
 }
 
 // ----------------------------------------------------------------
@@ -97,6 +123,14 @@ export function getNavHistory(code, limit = 30) {
 // ----------------------------------------------------------------
 export function listHoldings() {
   return request('/api/holdings')
+}
+
+export function getHolding(id) {
+  return request(`/api/holdings/${id}`)
+}
+
+export function updateHolding(id, data) {
+  return request(`/api/holdings/${id}`, { method: 'PUT', data })
 }
 
 // ----------------------------------------------------------------
