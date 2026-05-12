@@ -4,7 +4,15 @@ Page({
   data: {
     transactions: [],
     loading: true,
-    filter: { fund_code: '', status: '', trans_type: '' },
+    // 预计算数组
+    typeOptions: ['全部', '买入', '卖出', '定投买入'],
+    typeValues: ['', 'buy', 'sell', 'auto_buy'],
+    statusOptions: ['全部', '待确认', '已确认', '已到账'],
+    statusValues: ['', 'pending', 'confirmed', 'settled'],
+    // 筛选
+    typeIndex: 0,
+    statusIndex: 0,
+    filter: { trans_type: '', status: '' },
   },
 
   onShow() {
@@ -14,10 +22,9 @@ Page({
   async loadData() {
     this.setData({ loading: true })
     try {
-      const params = {}
-      if (this.data.filter.fund_code) params.fund_code = this.data.filter.fund_code
-      if (this.data.filter.status) params.status = this.data.filter.status
+      const params = { limit: 50 }
       if (this.data.filter.trans_type) params.trans_type = this.data.filter.trans_type
+      if (this.data.filter.status) params.status = this.data.filter.status
       const transactions = await listTransactions(params)
       this.setData({ transactions, loading: false })
     } catch (e) {
@@ -25,9 +32,20 @@ Page({
     }
   },
 
-  onFilterChange(e) {
-    const field = e.currentTarget.dataset.field
-    this.setData({ [`filter.${field}`]: e.detail.value }, () => this.loadData())
+  onTypeFilterChange(e) {
+    const idx = e.detail.value
+    this.setData({
+      typeIndex: idx,
+      'filter.trans_type': this.data.typeValues[idx],
+    }, () => this.loadData())
+  },
+
+  onStatusFilterChange(e) {
+    const idx = e.detail.value
+    this.setData({
+      statusIndex: idx,
+      'filter.status': this.data.statusValues[idx],
+    }, () => this.loadData())
   },
 
   async onDelete(e) {

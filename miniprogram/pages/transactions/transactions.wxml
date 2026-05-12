@@ -3,13 +3,13 @@
     <text class="page-title">交易记录</text>
   </view>
 
-  <!-- 简单筛选 -->
+  <!-- 筛选 -->
   <view class="filter-row flex gap-sm p-md">
-    <picker mode="selector" range="{{['','buy','sell','auto_buy']}}" range-key="type" data-field="trans_type" bindchange="onFilterChange">
-      <view class="filter-tag tag tag-blue">类型</view>
+    <picker mode="selector" range="{{typeOptions}}" bindchange="onTypeFilterChange">
+      <view class="filter-tag tag tag-blue">{{typeOptions[typeIndex]}}</view>
     </picker>
-    <picker mode="selector" range="{{['','pending','confirmed','settled']}}" data-field="status" bindchange="onFilterChange">
-      <view class="filter-tag tag tag-yellow">状态</view>
+    <picker mode="selector" range="{{statusOptions}}" bindchange="onStatusFilterChange">
+      <view class="filter-tag tag tag-yellow">{{statusOptions[statusIndex]}}</view>
     </picker>
   </view>
 

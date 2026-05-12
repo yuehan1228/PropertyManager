@@ -6,21 +6,19 @@
              data-field="plan_name" bindinput="onInput" />
     </view>
 
+    <!-- 目标基金 picker -->
     <view class="form-group">
       <text class="form-label">目标基金 *</text>
-      <picker mode="selector" range="{{funds}}" range-key="name" data-field="fund_code" bindchange="onPickerChange">
-        <view class="picker-value {{form.fund_code ? '' : 'placeholder'}}">
-          {{form.fund_code ? form.fund_code + ' ' + (funds.find(f => f.code === form.fund_code)?.name || '') : '请选择基金'}}
-        </view>
+      <picker mode="selector" range="{{funds}}" range-key="name" bindchange="onFundPickerChange">
+        <view class="picker-value">{{selectedFundDisplay}}</view>
       </picker>
     </view>
 
+    <!-- 扣款账户 picker -->
     <view class="form-group">
       <text class="form-label">扣款账户 *</text>
-      <picker mode="selector" range="{{accounts}}" range-key="label" data-field="from_account_id" bindchange="onPickerChange">
-        <view class="picker-value {{form.from_account_id ? '' : 'placeholder'}}">
-          {{form.from_account_id ? (accounts.find(a => a.id == form.from_account_id)?.label || '') : '请选择账户'}}
-        </view>
+      <picker mode="selector" range="{{accounts}}" range-key="label" bindchange="onAccountPickerChange">
+        <view class="picker-value">{{selectedAccountDisplay}}</view>
       </picker>
     </view>
 
@@ -31,18 +29,21 @@
     </view>
   </view>
 
+  <!-- 扣款频率 -->
   <view class="form-section card">
     <view class="section-label">扣款频率</view>
     <radio-group bindchange="onRadioChange">
-      <label class="radio-row flex items-center" wx:for="{{['monthly','biweekly','weekly','daily']}}" wx:key="*this">
-        <radio value="{{item}}" checked="{{form.frequency === item}}" color="#0f3460" />
-        <text>{{item === 'monthly' ? '每月' : item === 'biweekly' ? '每两周' : item === 'weekly' ? '每周' : '每日'}}</text>
+      <label class="radio-row flex items-center"
+             wx:for="{{freqOptions}}" wx:key="value">
+        <radio value="{{item.value}}" checked="{{form.frequency === item.value}}" color="#0f3460" />
+        <text>{{item.label}}</text>
       </label>
     </radio-group>
 
+    <!-- 每月执行日 picker -->
     <view class="form-group" wx:if="{{form.frequency === 'monthly'}}">
       <text class="form-label">每月执行日</text>
-      <picker mode="selector" range="{{[1,5,10,15,20,25,28]}}" data-field="execute_day" bindchange="onPickerChange">
+      <picker mode="selector" range="{{dayOptions}}" bindchange="onDayPickerChange">
         <view class="picker-value">{{form.execute_day}} 日</view>
       </picker>
     </view>
@@ -68,7 +69,7 @@
 
   <view class="form-actions p-md">
     <button class="btn btn-primary btn-block" bindtap="onSubmit" loading="{{submitting}}">
-      {{editId ? '保存修改' : '创建计划'}}
+      保存
     </button>
   </view>
 </view>

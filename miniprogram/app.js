@@ -1,6 +1,6 @@
 App({
   globalData: {
-    baseUrl: 'http://localhost:8000', // 开发环境，发布时改生产地址
+    baseUrl: 'https://concrete-cream-column-juan.trycloudflare.com', // cloudflared 隧道（重启会变）
     userInfo: null,
   },
 

@@ -5,7 +5,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.database import get_engine
 from app.models.base import Base
@@ -115,15 +116,20 @@ app.include_router(dashboard.router)
 app.include_router(admin.router)
 
 # ---------------------------------------------------------------------------
+# 静态文件
+# ---------------------------------------------------------------------------
+import os
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# ---------------------------------------------------------------------------
 # 基础端点
 # ---------------------------------------------------------------------------
 @app.get("/")
 def root():
-    return {
-        "app": "个人资产追踪系统",
-        "version": "0.1.0",
-        "docs": "/docs",
-    }
+    """返回 Web 前端页面"""
+    index_path = os.path.join(static_dir, "index.html")
+    return FileResponse(index_path)
 
 @app.get("/health")
 def health():

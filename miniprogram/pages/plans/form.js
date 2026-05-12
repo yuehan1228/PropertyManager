@@ -1,10 +1,19 @@
-import { listFunds, listAccounts, getFund, createPlan, updatePlan } from '../../services/api'
+import { listFunds, listAccounts, createPlan, updatePlan } from '../../services/api'
 
 Page({
   data: {
     editId: null,
     funds: [],
     accounts: [],
+    // 预计算数组（WXML 不支持内联数组）
+    freqOptions: [
+      { value: 'monthly', label: '每月' },
+      { value: 'biweekly', label: '每两周' },
+      { value: 'weekly', label: '每周' },
+      { value: 'daily', label: '每日' },
+    ],
+    dayOptions: [1, 5, 10, 15, 20, 25, 28],
+    // 表单
     form: {
       plan_name: '',
       fund_code: '',
@@ -16,21 +25,18 @@ Page({
       start_date: '',
       remark: '',
     },
+    // WXML 展示用的预计算文本
+    selectedFundDisplay: '请选择基金',
+    selectedAccountDisplay: '请选择账户',
     submitting: false,
   },
 
   onLoad(options) {
     const today = new Date()
-    this.setData({
-      'form.start_date': this._fmtDate(today),
-    })
-
+    this.setData({ 'form.start_date': this._fmtDate(today) })
     if (options.id) {
       this.setData({ editId: options.id })
-      // 这里需要加载已有计划数据 —— 简化起见，从 plans 列表页传入
-      // 实际项目中用 wx.getStorage 或重新拉取
     }
-
     this.loadOptions()
   },
 
@@ -42,28 +48,49 @@ Page({
       ])
       this.setData({ funds, accounts })
     } catch (e) {
-      // handled
+      // handled by api layer
     }
   },
 
+  // ---------- 输入事件 ----------
   onInput(e) {
     const field = e.currentTarget.dataset.field
     this.setData({ [`form.${field}`]: e.detail.value })
   },
 
-  onPickerChange(e) {
-    const field = e.currentTarget.dataset.field
+  // ---------- picker 选择 ----------
+  onFundPickerChange(e) {
     const idx = e.detail.value
-    const list = field === 'fund_code' ? this.data.funds : this.data.accounts
-    this.setData({
-      [`form.${field}`]: list[idx]?.code || list[idx]?.id || '',
-    })
+    const fund = this.data.funds[idx]
+    if (fund) {
+      this.setData({
+        'form.fund_code': fund.code,
+        selectedFundDisplay: fund.code + ' ' + (fund.name || ''),
+      })
+    }
+  },
+
+  onAccountPickerChange(e) {
+    const idx = e.detail.value
+    const account = this.data.accounts[idx]
+    if (account) {
+      this.setData({
+        'form.from_account_id': account.id,
+        selectedAccountDisplay: account.label,
+      })
+    }
+  },
+
+  onDayPickerChange(e) {
+    const idx = e.detail.value
+    this.setData({ 'form.execute_day': this.data.dayOptions[idx] })
   },
 
   onRadioChange(e) {
     this.setData({ 'form.frequency': e.detail.value })
   },
 
+  // ---------- 提交 ----------
   async onSubmit() {
     const { form, editId } = this.data
     if (!form.plan_name.trim() || !form.fund_code || !form.from_account_id || !form.amount) {
@@ -84,7 +111,6 @@ Page({
         start_date: form.start_date,
         remark: form.remark,
       }
-
       if (editId) {
         await updatePlan(editId, payload)
       } else {
@@ -97,6 +123,7 @@ Page({
     }
   },
 
+  // ---------- 工具 ----------
   _fmtDate(d) {
     const y = d.getFullYear()
     const m = String(d.getMonth() + 1).padStart(2, '0')
